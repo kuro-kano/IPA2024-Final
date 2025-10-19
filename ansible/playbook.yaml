@@ -2,14 +2,20 @@
 - name: Show running Configuration
   hosts: routers
   gather_facts: false
+  connection: network_cli
+  collections:
+    - cisco.ios
+  vars:
+    ansible_network_cli_ssh_type: paramiko
 
   tasks:
-    - name: Get running config
-      ios_command:
+    - name: Get running-config
+      cisco.ios.ios_command:
         commands: show running-config
       register: config
 
-    - name: Save config to file
-      copy:
+    - name: Save config to file (controller)
+      ansible.builtin.copy:
         content: "{{ config.stdout[0] }}"
-        dest: "./show_run_66070091_CSR1kv.txt"
+        dest: "{{ playbook_dir }}/../show_run_66070091_CSR1kv.txt"
+      delegate_to: localhost

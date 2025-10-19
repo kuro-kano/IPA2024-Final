@@ -2,14 +2,22 @@ import subprocess
 import os
 
 def showrun():
+    project_root = os.path.dirname(__file__)
+    env = os.environ.copy()
+    env["ANSIBLE_CONFIG"] = os.path.join(project_root, "ansible", "ansible.cfg")
 
-    ansible_dir = os.path.join(os.path.dirname(__file__), 'ansible')
-    # read https://www.datacamp.com/tutorial/python-subprocess to learn more about subprocess
-    command = ["ansible-playbook", "playbook.yaml"]
-    result = subprocess.run(command, capture_output=True, text=True, cwd=ansible_dir)
-    result = result.stdout
+    command = [
+        "ansible-playbook",
+        "-i", "ansible/hosts",
+        "ansible/playbook.yaml"
+    ]
 
-    if 'ok=2' in result:
-        return 'ok'
-    else:
-        return 'Error: Ansible'
+    result = subprocess.run(command, capture_output=True, text=True, env=env, cwd=project_root)
+    output = (result.stdout or "") + (result.stderr or "")
+    print(f"Ansible error output: {output}")
+
+    out_file = os.path.join(project_root, "show_run_66070091_CSR1kv.txt")
+    if result.returncode != 0 or not os.path.exists(out_file):
+        return "Error: Ansible"
+
+    return "ok"
