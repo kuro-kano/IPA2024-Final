@@ -1,11 +1,15 @@
 import subprocess
+import os
 
 def showrun():
+
+    ansible_dir = os.path.join(os.path.dirname(__file__), 'ansible')
     # read https://www.datacamp.com/tutorial/python-subprocess to learn more about subprocess
-    command = ['<!!!REPLACEME with ansible command to run playbook!!!>', '<!!!REPLACEME with playbook yaml file!!!>']
-    result = subprocess.run(command, capture_output=True, text=True)
+    command = ["ansible-playbook", "playbook.yaml"]
+    result = subprocess.run(command, capture_output=True, text=True, cwd=ansible_dir)
     result = result.stdout
+
     if 'ok=2' in result:
-        return <!!!REPLACEME!!!>
+        return 'ok'
     else:
-        return '<!!!REPLACEME!!!>
+        return 'Error: Ansible'
