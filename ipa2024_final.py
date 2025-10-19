@@ -5,24 +5,28 @@
 #######################################################################################
 
 import requests
-from requests_toolbelt.multipart.encoder import MultipartEncoder as encoder
 import json
 import time
 import os
+
+from requests_toolbelt.multipart.encoder import MultipartEncoder as encoder
+from dotenv import load_dotenv
 
 from restconf_final import create, status, delete, enable, disable
 from netmiko_final import gigabit_status 
 from ansible_final import showrun
 
-ACCESS_TOKEN = os.environ.ACCESS_TOKEN
+load_dotenv()
+
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 WEBEX_API_URL = "https://webexapis.com/v1/messages"
-roomIdToGetMessages = os.environ.ROOM_ID
+roomIdToGetMessages = os.getenv("ROOM_ID")
 
 while True:
     time.sleep(1)
 
     getParameters = {"roomId": roomIdToGetMessages, "max": 1}
-    getHTTPHeader = {"Authorization": ACCESS_TOKEN}
+    getHTTPHeader = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
 
     r = requests.get(WEBEX_API_URL, params=getParameters, headers=getHTTPHeader)
 
@@ -74,7 +78,7 @@ while True:
             postData = encoder(postData)
 
             HTTPHeaders = {
-                "Authorization": ACCESS_TOKEN,
+                "Authorization": f"Bearer {ACCESS_TOKEN}",
                 "Content-Type": postData.content_type
             }
 
@@ -86,7 +90,7 @@ while True:
             postData = json.dumps(postData)
 
             HTTPHeaders = {
-                "Authorization": ACCESS_TOKEN,
+                "Authorization": f"Bearer {ACCESS_TOKEN}",
                 "Content-Type": "application/json"
             }
 
