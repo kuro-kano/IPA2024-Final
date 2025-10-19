@@ -5,7 +5,7 @@
 #######################################################################################
 
 import requests
-from requests_toolbelt.multipart.encoder import encoder
+from requests_toolbelt.multipart.encoder import MultipartEncoder as encoder
 import json
 import time
 import os
