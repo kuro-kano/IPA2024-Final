@@ -2,6 +2,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+import time
 
 
 def showrun():
@@ -53,15 +54,35 @@ def showrun():
         PLAYBOOK,
     ]
 
-    proc = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=180)
-    output = (proc.stdout or "") + "\n" + (proc.stderr or "")
-    print(output)
+    while True:
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True, env=env, timeout=180
+            )
+            output = (proc.stdout or "") + "\n" + (proc.stderr or "")
+            print(output)
 
-    if "ok=2" in output and "failed=0" in output:
-        tmpdir.cleanup()
-        return "ok"
-    else:
-        tmpdir.cleanup()
+            if "ok=2" in output and "failed=0" in output:
+                tmpdir.cleanup()
+                return "ok"
+
+            if ("timed out" in output) or ("No existing session" in output):
+                print("[showrun] Retryable error -> retry in 2s ...")
+                time.sleep(2)
+                continue
+
+            print("[showrun] Non-retryable failure from Ansible.")
+            tmpdir.cleanup()
+            return None
+
+        except subprocess.TimeoutExpired:
+            print("[showrun] ansible-playbook process timeout -> retry in 2s ...")
+            time.sleep(2)
+            continue
+        except Exception as e:
+            print(f"[showrun] Unexpected error: {e}")
+            tmpdir.cleanup()
+            return None
 
 if __name__ == "__main__":
     result = showrun()
