@@ -21,6 +21,8 @@ load_dotenv()
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 WEBEX_API_URL = "https://webexapis.com/v1/messages"
 roomIdToGetMessages = os.getenv("ROOM_ID")
+# จำข้อความล่าสุดที่ประมวลผลแล้ว
+last_message_id = None
 
 try:
     print("Starting...")
@@ -43,7 +45,13 @@ try:
             raise Exception("There are no messages in the room.")
 
         messages = json_data["items"]
-        message = messages[0]["text"]
+        latest = messages[0]
+
+        if latest["id"] == last_message_id:
+            continue
+        last_message_id = latest["id"]
+
+        message = latest.get("text", "") or ""
 
         if message.startswith("/66070091 "):
             print(f"\nReceived message: {message}")
@@ -71,7 +79,7 @@ try:
             print(f"Response Message: {responseMessage}\n")
 
             if command == "showrun" and responseMessage == "ok":
-                filename = "show_run_66070091_CSR1kv.txt"
+                filename = "show_run_66070091_CSR1kv.txt"  # ให้ตรงกับไฟล์ที่ ansible สร้าง
                 fileobject = open(filename, "rb")
                 filetype = "text/plain"
 
@@ -87,15 +95,14 @@ try:
                     "Content-Type": postData.content_type
                 }
 
-                r = requests.post(
-                    WEBEX_API_URL, data=postData, headers=HTTPHeaders
-                )
+                r = requests.post(WEBEX_API_URL, data=postData, headers=HTTPHeaders)
                 fileobject.close()
 
                 if r.status_code != 200:
                     raise Exception(
                         f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
                     )
+                continue
 
             else:
                 postData = {
