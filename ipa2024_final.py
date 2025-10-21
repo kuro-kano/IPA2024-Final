@@ -23,6 +23,7 @@ WEBEX_API_URL = "https://webexapis.com/v1/messages"
 roomIdToGetMessages = os.getenv("ROOM_ID")
 
 try:
+    print("Starting...")
     while True:
         time.sleep(1)
 
@@ -43,9 +44,10 @@ try:
 
         messages = json_data["items"]
         message = messages[0]["text"]
-        print(f"Received message: {message}")
 
         if message.startswith("/66070091 "):
+            print(f"\nReceived message: {message}")
+
             command = message.split(" ")[1]
             print(command)
 
@@ -66,6 +68,8 @@ try:
             else:
                 responseMessage = "Error: Unknown command."
 
+            print(f"Response Message: {responseMessage}\n")
+
             if command == "showrun" and responseMessage == "ok":
                 filename = "show_run_66070091_CSR1kv.txt"
                 fileobject = open(filename, "rb")
@@ -82,6 +86,16 @@ try:
                     "Authorization": f"Bearer {ACCESS_TOKEN}",
                     "Content-Type": postData.content_type
                 }
+
+                r = requests.post(
+                    WEBEX_API_URL, data=postData, headers=HTTPHeaders
+                )
+                fileobject.close()
+
+                if r.status_code != 200:
+                    raise Exception(
+                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                    )
 
             else:
                 postData = {

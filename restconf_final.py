@@ -3,7 +3,7 @@ import requests
 
 requests.packages.urllib3.disable_warnings()
 
-api_url = "https://10.0.15.63/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
+api_url = "https://10.0.15.61/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
 
 headers = {
     "Accept": "application/yang-data+json",
@@ -11,8 +11,6 @@ headers = {
 }
 
 basicauth = ("admin", "cisco")
-TIMEOUT = 10
-
 
 def create():
     yangConfig = {
@@ -33,7 +31,6 @@ def create():
             auth=basicauth,
             headers=headers,
             verify=False,
-            timeout=TIMEOUT,
         )
 
         if resp.status_code >= 200 and resp.status_code <= 299:
@@ -41,7 +38,7 @@ def create():
             return "Interface Loopback66070091 is created successfully"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Cannot create: Interface Loopback66070091"
+            return "Error: Cannot create Interface Loopback66070091"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
@@ -50,7 +47,10 @@ def create():
 def delete():
     try:
         resp = requests.delete(
-            api_url, auth=basicauth, headers=headers, verify=False, timeout=TIMEOUT
+            api_url,
+            auth=basicauth,
+            headers=headers,
+            verify=False,
         )
 
         if resp.status_code >= 200 and resp.status_code <= 299:
@@ -66,7 +66,10 @@ def delete():
 
 def enable():
     yangConfig = {
-        "ietf-interfaces:interface": {"name": "Loopback66070091", "enabled": True}
+        "ietf-interfaces:interface": {
+            "name": "Loopback66070091",
+            "enabled": True
+        }
     }
 
     try:
@@ -76,7 +79,6 @@ def enable():
             auth=basicauth,
             headers=headers,
             verify=False,
-            timeout=TIMEOUT,
         )
 
         if resp.status_code >= 200 and resp.status_code <= 299:
@@ -92,7 +94,10 @@ def enable():
 
 def disable():
     yangConfig = {
-        "ietf-interfaces:interface": {"name": "Loopback66070091", "enabled": False}
+        "ietf-interfaces:interface": {
+            "name": "Loopback66070091",
+            "enabled": False
+        }
     }
 
     try:
@@ -102,7 +107,6 @@ def disable():
             auth=basicauth,
             headers=headers,
             verify=False,
-            timeout=TIMEOUT,
         )
 
         if resp.status_code >= 200 and resp.status_code <= 299:
@@ -117,11 +121,14 @@ def disable():
 
 
 def status():
-    api_url_status = "https://10.0.15.63/restconf/data/ietf-interfaces:interfaces-state/interface=Loopback66070091"
+    api_url_status = "https://10.0.15.61/restconf/data/ietf-interfaces:interfaces-state/interface=Loopback66070091"
 
     try:
         resp = requests.get(
-            api_url_status, auth=basicauth, headers=headers, verify=False, timeout=TIMEOUT
+            api_url_status,
+            auth=basicauth,
+            headers=headers,
+            verify=False,
         )
 
         if resp.status_code >= 200 and resp.status_code <= 299:
@@ -144,7 +151,7 @@ def status():
 
         elif resp.status_code == 404:
             print(f"STATUS NOT FOUND: {resp.status_code}")
-            return "No Interface Loopback66070091"
+            return "Error: No Interface Loopback66070091"
         else:
             print(f"Error. Status Code: {resp.status_code}")
             return "Cannot retrieve status: Interface Loopback66070091"
