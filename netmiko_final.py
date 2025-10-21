@@ -1,3 +1,5 @@
+"""Connect to a CSR1000v and get GigabitEthernet interface status"""
+
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoTimeoutException
 from pprint import pprint
@@ -16,6 +18,7 @@ device_params = {
 
 
 def gigabit_status():
+    """Get GigabitEthernet interface status repeatedly until successful."""
     ans = ""
     while True:
         try:

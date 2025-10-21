@@ -1,3 +1,5 @@
+"""Run Ansible playbook to get `show running-config` from a router."""
+
 import os
 import subprocess
 import tempfile
@@ -6,21 +8,24 @@ import time
 
 
 def showrun():
-    STUDENT_ID  = "66070091"
+    """Get running-config from router via Ansible playbook."""
+    STUDENT_ID = "66070091"
     ROUTER_NAME = "CSR1kv"
-    PLAYBOOK    = "ansible/playbook_showrun.yaml"
+    PLAYBOOK = "ansible/playbook_showrun.yaml"
 
     ansible_user = "admin"
     ansible_pass = "cisco"
-    enable_pass  = ""
+    enable_pass = ""
 
     target_ip = "10.0.15.61"
 
     inv_lines = [
         "[routers]",
-        (f"{ROUTER_NAME} ansible_host={target_ip} "
-         f"ansible_user={ansible_user} ansible_password={ansible_pass} "
-         f"ansible_network_os=ios").strip()
+        (
+            f"{ROUTER_NAME} ansible_host={target_ip} "
+            f"ansible_user={ansible_user} ansible_password={ansible_pass} "
+            f"ansible_network_os=ios"
+        ).strip(),
     ]
     if enable_pass:
         inv_lines += [
@@ -47,10 +52,14 @@ def showrun():
 
     cmd = [
         "ansible-playbook",
-        "-i", str(inventory),
-        "--ssh-common-args", ssh_common_args,
-        "-e", "ansible_connection=network_cli",
-        "-e", extra_vars,
+        "-i",
+        str(inventory),
+        "--ssh-common-args",
+        ssh_common_args,
+        "-e",
+        "ansible_connection=network_cli",
+        "-e",
+        extra_vars,
         PLAYBOOK,
     ]
 
@@ -83,7 +92,3 @@ def showrun():
             print(f"[showrun] Unexpected error: {e}")
             tmpdir.cleanup()
             return None
-
-if __name__ == "__main__":
-    result = showrun()
-    print(result)

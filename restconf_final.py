@@ -1,3 +1,5 @@
+"""Module to manage Loopback66070091 interface via RESTCONF API."""
+
 import json
 import requests
 
@@ -12,7 +14,9 @@ headers = {
 
 basicauth = ("admin", "cisco")
 
+
 def create():
+    """Create Loopback66070091 interface."""
     yangConfig = {
         "ietf-interfaces:interface": {
             "name": "Loopback66070091",
@@ -45,6 +49,7 @@ def create():
 
 
 def delete():
+    """Delete Loopback66070091 interface."""
     try:
         resp = requests.delete(
             api_url,
@@ -65,11 +70,9 @@ def delete():
 
 
 def enable():
+    """Enable Loopback66070091 interface."""
     yangConfig = {
-        "ietf-interfaces:interface": {
-            "name": "Loopback66070091",
-            "enabled": True
-        }
+        "ietf-interfaces:interface": {"name": "Loopback66070091", "enabled": True}
     }
 
     try:
@@ -93,11 +96,9 @@ def enable():
 
 
 def disable():
+    """Disable Loopback66070091 interface."""
     yangConfig = {
-        "ietf-interfaces:interface": {
-            "name": "Loopback66070091",
-            "enabled": False
-        }
+        "ietf-interfaces:interface": {"name": "Loopback66070091", "enabled": False}
     }
 
     try:
@@ -121,6 +122,7 @@ def disable():
 
 
 def status():
+    """Get status of Loopback66070091 interface."""
     api_url_status = "https://10.0.15.61/restconf/data/ietf-interfaces:interfaces-state/interface=Loopback66070091"
 
     try:

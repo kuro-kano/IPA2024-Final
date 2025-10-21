@@ -1,3 +1,5 @@
+"""Main program to interact with Webex Teams API and execute commands."""
+
 #######################################################################################
 # Yourname: Thanya Woramongkol
 # Your student ID: 66070091
