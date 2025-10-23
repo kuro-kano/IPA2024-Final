@@ -9,9 +9,7 @@ import time
 
 def showrun():
     """Get running-config from router via Ansible playbook."""
-    STUDENT_ID = "66070091"
-    ROUTER_NAME = "CSR1kv"
-    PLAYBOOK = "ansible/playbook_showrun.yaml"
+    PLAYBOOK = "ansible/playbook.yaml"
 
     ansible_user = "admin"
     ansible_pass = "cisco"
@@ -22,7 +20,7 @@ def showrun():
     inv_lines = [
         "[routers]",
         (
-            f"{ROUTER_NAME} ansible_host={target_ip} "
+            f"CSR1kv ansible_host={target_ip} "
             f"ansible_user={ansible_user} ansible_password={ansible_pass} "
             f"ansible_network_os=ios"
         ).strip(),
@@ -48,8 +46,6 @@ def showrun():
     env = os.environ.copy()
     env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
 
-    extra_vars = f"student_id={STUDENT_ID} router_name={ROUTER_NAME}"
-
     cmd = [
         "ansible-playbook",
         "-i",
@@ -58,8 +54,6 @@ def showrun():
         ssh_common_args,
         "-e",
         "ansible_connection=network_cli",
-        "-e",
-        extra_vars,
         PLAYBOOK,
     ]
 

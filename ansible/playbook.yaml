@@ -1,21 +1,26 @@
 ---
-- name: Show running Configuration
+- name: Collect and save running-config
   hosts: routers
   gather_facts: false
-  connection: network_cli
+  connection: ansible.netcommon.network_cli
   collections:
     - cisco.ios
+    - ansible.netcommon
   vars:
+    ansible_host: 10.0.15.61
+    ansible_network_os: cisco.ios.ios
     ansible_network_cli_ssh_type: paramiko
 
   tasks:
     - name: Get running-config
       cisco.ios.ios_command:
-        commands: show running-config
-      register: config
+        commands:
+          - show running-config
+      register: run_cfg
 
-    - name: Save config to file (controller)
-      ansible.builtin.copy:
-        content: "{{ config.stdout[0] }}"
-        dest: "{{ playbook_dir }}/../show_run_66070091_CSR1kv.txt"
+    - name: Save running-config at project root
       delegate_to: localhost
+      ansible.builtin.copy:
+        content: "{{ run_cfg.stdout[0] }}"
+        dest: "{{ playbook_dir }}/../show_run_66070091_CSR1kv.txt"
+        mode: "0644"
