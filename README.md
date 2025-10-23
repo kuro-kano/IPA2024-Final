@@ -77,4 +77,3 @@ python ipa2024_final.py
 - คำสั่ง showrun ต้องมี ansible ติดตั้งและไฟล์ playbook อยู่ที่ ansible/playbook_showrun.yaml
 - ตรวจสอบว่า SSH ทำงานอยู่หรือไม่ โดยรัน `sudo service ssh status` หรือ `sudo systemctl status ssh` — หากสถานะเป็น inactive ให้รัน `sudo service ssh restart` หรือ `sudo systemctl restart ssh`
 - หากเชื่อมต่ออุปกรณ์จริง ตรวจสอบให้แน่ใจว่าคอนฟิก RESTCONF/SSH ของอุปกรณ์เปิดใช้งานและ IP/รหัสผ่านถูกต้อง
-
