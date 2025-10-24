@@ -1,17 +1,19 @@
 from ncclient import manager
 import xmltodict
 
-# Connect to device (adjust host/port if needed)
-m = manager.connect(
-    host="10.0.15.61",
-    port=830,
-    username="admin",
-    password="cisco",
-    hostkey_verify=False,
-)
 
-def netconf_edit_config(netconf_config):
-    return m.edit_config(target="running", config=netconf_config)
+def get_manager(host, port=830, username="admin", password="cisco"):
+    return manager.connect(
+        host=host,
+        port=port,
+        username=username,
+        password=password,
+        hostkey_verify=False,
+    )
+
+
+def netconf_edit_config(mgr, netconf_config):
+    return mgr.edit_config(target="running", config=netconf_config)
 
 
 def _find_key(data, suffix):
@@ -30,7 +32,7 @@ def _find_key(data, suffix):
     return None
 
 
-def create():
+def create(device_ip):
     netconf_config = """
     <config>
       <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
@@ -50,19 +52,20 @@ def create():
     """
 
     try:
-        reply = netconf_edit_config(netconf_config)
-        xml_data = reply.xml
-        print(xml_data)
-        if "<ok/>" in xml_data:
-            return "Interface Loopback66070091 is created successfully"
-        else:
-            return "Error: Cannot create Interface Loopback66070091"
+        with get_manager(device_ip) as m:
+            reply = netconf_edit_config(m, netconf_config)
+            xml_data = reply.xml
+            print(xml_data)
+            if "<ok/>" in xml_data:
+                return "Interface Loopback66070091 is created successfully"
+            else:
+                return "Error: Cannot create Interface Loopback66070091"
     except Exception as e:
         print(f"Exception: {e}")
-        return f"Error: Cannot connect to router - {str(e)}"
+        return f"Error: Cannot connect to router {device_ip} - {str(e)}"
 
 
-def delete():
+def delete(device_ip):
     netconf_config = """
     <config xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
       <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
@@ -74,19 +77,20 @@ def delete():
     """
 
     try:
-        reply = netconf_edit_config(netconf_config)
-        xml_data = reply.xml
-        print(xml_data)
-        if "<ok/>" in xml_data:
-            return "Interface Loopback66070091 is deleted successfully"
-        else:
-            return "Cannot delete: Interface Loopback66070091"
+        with get_manager(device_ip) as m:
+            reply = netconf_edit_config(m, netconf_config)
+            xml_data = reply.xml
+            print(xml_data)
+            if "<ok/>" in xml_data:
+                return "Interface Loopback66070091 is deleted successfully"
+            else:
+                return "Cannot delete: Interface Loopback66070091"
     except Exception as e:
         print(f"Exception: {e}")
-        return f"Error: Cannot connect to router - {str(e)}"
+        return f"Error: Cannot connect to router {device_ip} - {str(e)}"
 
 
-def enable():
+def enable(device_ip):
     netconf_config = """
     <config>
       <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
@@ -99,19 +103,20 @@ def enable():
     """
 
     try:
-        reply = netconf_edit_config(netconf_config)
-        xml_data = reply.xml
-        print(xml_data)
-        if "<ok/>" in xml_data:
-            return "Interface Loopback66070091 is enabled successfully"
-        else:
-            return "Cannot enable: Interface Loopback66070091"
+        with get_manager(device_ip) as m:
+            reply = netconf_edit_config(m, netconf_config)
+            xml_data = reply.xml
+            print(xml_data)
+            if "<ok/>" in xml_data:
+                return "Interface Loopback66070091 is enabled successfully"
+            else:
+                return "Cannot enable: Interface Loopback66070091"
     except Exception as e:
         print(f"Exception: {e}")
-        return f"Error: Cannot connect to router - {str(e)}"
+        return f"Error: Cannot connect to router {device_ip} - {str(e)}"
 
 
-def disable():
+def disable(device_ip):
     netconf_config = """
     <config>
       <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
@@ -124,19 +129,20 @@ def disable():
     """
 
     try:
-        reply = netconf_edit_config(netconf_config)
-        xml_data = reply.xml
-        print(xml_data)
-        if "<ok/>" in xml_data:
-            return "Interface Loopback66070091 is disabled successfully"
-        else:
-            return "Cannot disable: Interface Loopback66070091"
+        with get_manager(device_ip) as m:
+            reply = netconf_edit_config(m, netconf_config)
+            xml_data = reply.xml
+            print(xml_data)
+            if "<ok/>" in xml_data:
+                return "Interface Loopback66070091 is disabled successfully"
+            else:
+                return "Cannot disable: Interface Loopback66070091"
     except Exception as e:
         print(f"Exception: {e}")
-        return f"Error: Cannot connect to router - {str(e)}"
+        return f"Error: Cannot connect to router {device_ip} - {str(e)}"
 
 
-def status():
+def status(device_ip):
     netconf_filter = """
     <interfaces-state xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
       <interface>
@@ -146,32 +152,32 @@ def status():
     """
 
     try:
-        netconf_reply = m.get(filter=("subtree", netconf_filter))
-        print(netconf_reply)
-        netconf_reply_dict = xmltodict.parse(netconf_reply.xml)
+        with get_manager(device_ip) as m:
+            netconf_reply = m.get(filter=("subtree", netconf_filter))
+            print(netconf_reply)
+            netconf_reply_dict = xmltodict.parse(netconf_reply.xml)
 
-        interfaces_state = _find_key(netconf_reply_dict, "interfaces-state")
-        if interfaces_state:
-            interface = interfaces_state.get("interface")
-            # interface may be a list or dict
-            if isinstance(interface, list):
-                interface = interface[0]
-            admin_status = _find_key(interface, "admin-status")
-            oper_status = _find_key(interface, "oper-status")
-            # xmltodict may return values as dicts with '#text'
-            if isinstance(admin_status, dict):
-                admin_status = admin_status.get("#text", "")
-            if isinstance(oper_status, dict):
-                oper_status = oper_status.get("#text", "")
+            interfaces_state = _find_key(netconf_reply_dict, "interfaces-state")
+            if interfaces_state:
+                interface = interfaces_state.get("interface")
+                if isinstance(interface, list):
+                    interface = interface[0]
+                admin_status = _find_key(interface, "admin-status")
+                oper_status = _find_key(interface, "oper-status")
+                if isinstance(admin_status, dict):
+                    admin_status = admin_status.get("#text", "")
+                if isinstance(oper_status, dict):
+                    oper_status = oper_status.get("#text", "")
 
-            if admin_status == "up" and oper_status == "up":
-                return "Interface Loopback66070091, Status: Enabled"
-            elif admin_status == "down" and oper_status == "down":
-                return "Interface Loopback66070091, Status: Disabled"
+                if admin_status == "up" and oper_status == "up":
+                    return "Interface Loopback66070091, Status: Enabled"
+                elif admin_status == "down" and oper_status == "down":
+                    return "Interface Loopback66070091, Status: Disabled"
+                else:
+                    return f"Interface Loopback66070091, Admin: {admin_status}, Oper: {oper_status}"
             else:
-                return f"Interface Loopback66070091, Admin: {admin_status}, Oper: {oper_status}"
-        else:
-            return "Error: No Interface Loopback66070091"
+                return "Error: No Interface Loopback66070091"
+
     except Exception as e:
         print(f"Exception: {e}")
-        return f"Error: Cannot connect to router - {str(e)}"
+        return f"Error: Cannot connect to router {device_ip} - {str(e)}"

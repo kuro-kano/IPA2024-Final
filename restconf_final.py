@@ -5,8 +5,6 @@ import requests
 
 requests.packages.urllib3.disable_warnings()
 
-api_url = "https://10.0.15.61/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
-
 headers = {
     "Accept": "application/yang-data+json",
     "Content-Type": "application/yang-data+json",
@@ -15,8 +13,9 @@ headers = {
 basicauth = ("admin", "cisco")
 
 
-def create():
+def create(host_ip):
     """Create Loopback66070091 interface."""
+    api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
     yangConfig = {
         "ietf-interfaces:interface": {
             "name": "Loopback66070091",
@@ -48,8 +47,9 @@ def create():
         return f"Error: Cannot connect to router - {str(e)}"
 
 
-def delete():
+def delete(host_ip):
     """Delete Loopback66070091 interface."""
+    api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
     try:
         resp = requests.delete(
             api_url,
@@ -69,8 +69,9 @@ def delete():
         return f"Error: Cannot connect to router - {str(e)}"
 
 
-def enable():
+def enable(host_ip):
     """Enable Loopback66070091 interface."""
+    api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
     yangConfig = {
         "ietf-interfaces:interface": {"name": "Loopback66070091", "enabled": True}
     }
@@ -95,8 +96,9 @@ def enable():
         return f"Error: Cannot connect to router - {str(e)}"
 
 
-def disable():
+def disable(host_ip):
     """Disable Loopback66070091 interface."""
+    api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
     yangConfig = {
         "ietf-interfaces:interface": {"name": "Loopback66070091", "enabled": False}
     }
@@ -121,10 +123,9 @@ def disable():
         return f"Error: Cannot connect to router - {str(e)}"
 
 
-def status():
+def status(host_ip):
     """Get status of Loopback66070091 interface."""
-    api_url_status = "https://10.0.15.61/restconf/data/ietf-interfaces:interfaces-state/interface=Loopback66070091"
-
+    api_url_status = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces-state/interface=Loopback66070091"
     try:
         resp = requests.get(
             api_url_status,
