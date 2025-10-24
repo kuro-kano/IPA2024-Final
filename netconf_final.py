@@ -39,10 +39,10 @@ def create():
           <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:softwareLoopback</type>
           <enabled>true</enabled>
           <ietf-ip:ipv4 xmlns:ietf-ip="urn:ietf:params:xml:ns:yang:ietf-ip">
-            <address>
-              <ip>172.0.91.1</ip>
-              <netmask>255.255.255.0</netmask>
-            </address>
+            <ietf-ip:address>
+              <ietf-ip:ip>172.0.91.1</ietf-ip:ip>
+              <ietf-ip:netmask>255.255.255.0</ietf-ip:netmask>
+            </ietf-ip:address>
           </ietf-ip:ipv4>
         </interface>
       </interfaces>
