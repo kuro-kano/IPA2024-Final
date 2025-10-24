@@ -1,4 +1,5 @@
 from ncclient import manager
+from ncclient.operations import RPCError  # added
 import xmltodict
 
 
@@ -32,6 +33,13 @@ def _find_key(data, suffix):
     return None
 
 
+def _rpcerror_to_msg(e, action):
+    # Handle non-existing interface (NETCONF data-missing)
+    if getattr(e, "tag", "") == "data-missing":
+        return f"Error: Cannot {action}: Interface Loopback66070091 (checked via NETCONF)"
+    return f"Error: NETCONF RPC failed - {e}"
+
+
 def create(device_ip):
     netconf_config = """
     <config>
@@ -60,6 +68,8 @@ def create(device_ip):
                 return "Interface Loopback66070091 is created successfully using NETCONF"
             else:
                 return "Error: Cannot create Interface Loopback66070091 (checked via NETCONF)"
+    except RPCError as e:
+        return _rpcerror_to_msg(e, "create")
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -84,7 +94,9 @@ def delete(device_ip):
             if "<ok/>" in xml_data:
                 return "Interface Loopback66070091 is deleted successfully using NETCONF"
             else:
-                return "Cannot delete: Interface Loopback66070091 (checked via NETCONF)"
+                return "Error: Cannot delete: Interface Loopback66070091 (checked via NETCONF)"
+    except RPCError as e:
+        return _rpcerror_to_msg(e, "delete")
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -110,7 +122,9 @@ def enable(device_ip):
             if "<ok/>" in xml_data:
                 return "Interface Loopback66070091 is enabled successfully using NETCONF"
             else:
-                return "Cannot enable: Interface Loopback66070091 (checked via NETCONF)"
+                return "Error: Cannot enable: Interface Loopback66070091 (checked via NETCONF)"
+    except RPCError as e:
+        return _rpcerror_to_msg(e, "enable")
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -136,7 +150,9 @@ def disable(device_ip):
             if "<ok/>" in xml_data:
                 return "Interface Loopback66070091 is disabled successfully using NETCONF"
             else:
-                return "Cannot disable: Interface Loopback66070091 (checked via NETCONF)"
+                return "Error: Cannot disable: Interface Loopback66070091 (checked via NETCONF)"
+    except RPCError as e:
+        return _rpcerror_to_msg(e, "disable")
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -178,6 +194,11 @@ def status(device_ip):
             else:
                 return "Error: No Interface Loopback66070091 (checked via NETCONF)"
 
+    except RPCError as e:
+        # In case device returns an rpc-error for get
+        if getattr(e, "tag", "") == "data-missing":
+            return "Error: No Interface Loopback66070091 (checked via NETCONF)"
+        return f"Error: NETCONF RPC failed - {e}"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
