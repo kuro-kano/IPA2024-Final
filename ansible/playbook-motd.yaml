@@ -1,0 +1,23 @@
+---
+- name: Configure MOTD banner
+  hosts: routers
+  gather_facts: false
+  connection: ansible.netcommon.network_cli
+  collections:
+    - cisco.ios
+    - ansible.netcommon
+  vars:
+    ansible_network_os: cisco.ios.ios
+    ansible_network_cli_ssh_type: paramiko
+
+  tasks:
+    - name: Validate that motd_text is provided
+      ansible.builtin.fail:
+        msg: "motd_text is required"
+      when: motd_text is not defined or (motd_text | trim | length) == 0
+
+    - name: Ensure MOTD banner is configured
+      cisco.ios.ios_banner:
+        banner: motd
+        text: "{{ motd_text }}"
+        state: present

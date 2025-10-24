@@ -6,14 +6,10 @@
 # Your GitHub Repo: https://github.com/kuro-kano/IPA2024-Final
 #######################################################################################
 
-import requests
-import time
-import os
-
 from dotenv import load_dotenv
-
-import netconf_final as netconf
-import restconf_final as restconf
+import os
+import time
+import requests
 
 from functions.webex_input_format import format_check
 from functions.webex_sent_message import post_to_webex
@@ -69,6 +65,28 @@ try:
 
             command = message.split(" ")
 
+            # Handle MOTD directly: /66070091 <ip> motd [text...]
+            if len(command) >= 3 and command[2].lower() == "motd":
+                host_ip = command[1]
+                if len(command) == 3:
+                    # Read MOTD
+                    responseMessage = read_motd(host_ip)
+                else:
+                    # Configure MOTD
+                    motd_message = " ".join(command[3:]).strip()
+                    if motd_message == "":
+                        responseMessage = "Error: Invalid command format."
+                    else:
+                        responseMessage = conf_motd(host_ip, motd_message)
+
+                print(f"Response Message: {responseMessage}\n")
+                r = post_to_webex(responseMessage)
+                if not r.status_code == 200:
+                    raise Exception(
+                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                    )
+                continue  # skip the rest of the parsing for MOTD
+
             if len(command) == 2 and command[1] in valid_method:
                 command_method = command[1]
                 if command_method == "restconf":
@@ -79,7 +97,6 @@ try:
                     responseMessage = "ok: Using NETCONF method."
                 else:
                     responseMessage = "Error: No method specified."
-            # elif command[1] in other_commands:
             else:
                 if method == "":
                     responseMessage = "Error: No method specified."
@@ -87,52 +104,54 @@ try:
                     # Check command format
                     result = format_check(command)
                     if isinstance(result, str):
-                        # It's an error message
                         responseMessage = result
                     else:
-                        # It's a tuple (ip, command)
-                        host_ip, command, motd_message = result
-                        print(command)
+                        # Expect (ip, command) from format_check for non-motd
+                        if not result:
+                            responseMessage = "Error: Invalid command format."
+                        else:
+                            host_ip, command = result
+                            print(command)
 
-                        if command in method_required_command:
-                            if method == "restconf":
-                                if command == "create":
-                                    responseMessage = restconf.create(host_ip)
-                                elif command == "delete":
-                                    responseMessage = restconf.delete(host_ip)
-                                elif command == "enable":
-                                    responseMessage = restconf.enable(host_ip)
-                                elif command == "disable":
-                                    responseMessage = restconf.disable(host_ip)
-                                elif command == "status":
-                                    responseMessage = restconf.status(host_ip)
+                            if command in method_required_command:
+                                if method == "restconf":
+                                    if command == "create":
+                                        responseMessage = restconf.create(host_ip)
+                                    elif command == "delete":
+                                        responseMessage = restconf.delete(host_ip)
+                                    elif command == "enable":
+                                        responseMessage = restconf.enable(host_ip)
+                                    elif command == "disable":
+                                        responseMessage = restconf.disable(host_ip)
+                                    elif command == "status":
+                                        responseMessage = restconf.status(host_ip)
+                                    else:
+                                        responseMessage = "Error: Unknown command."
+                                elif method == "netconf":
+                                    if command == "create":
+                                        responseMessage = netconf.create(host_ip)
+                                    elif command == "delete":
+                                        responseMessage = netconf.delete(host_ip)
+                                    elif command == "enable":
+                                        responseMessage = netconf.enable(host_ip)
+                                    elif command == "disable":
+                                        responseMessage = netconf.disable(host_ip)
+                                    elif command == "status":
+                                        responseMessage = netconf.status(host_ip)
+                                    else:
+                                        responseMessage = "Error: Unknown command."
                                 else:
-                                    responseMessage = "Error: Unknown command."
-                            elif method == "netconf":
-                                if command == "create":
-                                    responseMessage = netconf.create(host_ip)
-                                elif command == "delete":
-                                    responseMessage = netconf.delete(host_ip)
-                                elif command == "enable":
-                                    responseMessage = netconf.enable(host_ip)
-                                elif command == "disable":
-                                    responseMessage = netconf.disable(host_ip)
-                                elif command == "status":
-                                    responseMessage = netconf.status(host_ip)
-                                else:
-                                    responseMessage = "Error: Unknown command."
-                            else:
-                                responseMessage = "Error: No method specified."
+                                    responseMessage = "Error: No method specified."
 
-                        elif command == "gigabit_status":
-                            responseMessage = gigabit_status(host_ip)
-                        elif command == "showrun":
-                            responseMessage = showrun(host_ip)
-                        elif command == "motd":
-                            if motd_message == "":
-                                responseMessage = read_motd(host_ip)
-                            else:
-                                responseMessage = conf_motd(host_ip, motd_message)
+                            elif command == "gigabit_status":
+                                responseMessage = gigabit_status(host_ip)
+                            elif command == "showrun":
+                                responseMessage = showrun(host_ip)
+                            elif command == "motd":
+                                if motd_message == "":
+                                    responseMessage = read_motd(host_ip)
+                                else:
+                                    responseMessage = conf_motd(host_ip, motd_message)
                             
 
             print(f"Response Message: {responseMessage}\n")
