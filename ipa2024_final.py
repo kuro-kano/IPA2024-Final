@@ -83,7 +83,6 @@ try:
         if latest["id"] == last_message_id:
             continue
         last_message_id = latest["id"]
-
         message = latest.get("text", "") or ""
 
         if message.startswith("/66070091 "):
