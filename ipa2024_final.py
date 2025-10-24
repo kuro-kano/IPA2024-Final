@@ -14,7 +14,9 @@ import os
 from requests_toolbelt.multipart.encoder import MultipartEncoder as encoder
 from dotenv import load_dotenv
 
-from netconf_final import create, status, delete, enable, disable
+import netconf_final as netconf
+import restconf_final as restconf
+
 from netmiko_final import gigabit_status
 from ansible_final import showrun
 
@@ -23,8 +25,36 @@ load_dotenv()
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 WEBEX_API_URL = "https://webexapis.com/v1/messages"
 roomIdToGetMessages = os.getenv("ROOM_ID")
-# จำข้อความล่าสุดที่ประมวลผลแล้ว
+
 last_message_id = None
+
+# RESTCONF or NETCONF
+method = ""
+
+def post_to_webex(text, file_path=None, filename=None, filetype="text/plain"):
+    """Post a message or a file to the configured Webex room."""
+    if file_path:
+        fileobject = open(file_path, "rb")
+        postData = {
+            "roomId": roomIdToGetMessages,
+            "text": text,
+            "files": (filename or os.path.basename(file_path), fileobject, filetype),
+        }
+        multipart = encoder(postData)
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": multipart.content_type,
+        }
+        r = requests.post(WEBEX_API_URL, data=multipart, headers=headers)
+        fileobject.close()
+    else:
+        postData = {"roomId": roomIdToGetMessages, "text": text}
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json",
+        }
+        r = requests.post(WEBEX_API_URL, data=json.dumps(postData), headers=headers)
+    return r
 
 try:
     print("Starting...")
@@ -61,69 +91,79 @@ try:
             command = message.split(" ")[1]
             print(command)
 
-            if command == "create":
-                responseMessage = create()
-            elif command == "delete":
-                responseMessage = delete()
-            elif command == "enable":
-                responseMessage = enable()
-            elif command == "disable":
-                responseMessage = disable()
-            elif command == "status":
-                responseMessage = status()
-            elif command == "gigabit_status":
-                responseMessage = gigabit_status()
-            elif command == "showrun":
-                responseMessage = showrun()
-            else:
-                responseMessage = "Error: Unknown command."
+            if command == "restconf":
+                method = "restconf"
+                responseMessage = "ok: Using RESTCONF method."
+
+                r = post_to_webex(responseMessage)
+                if not r.status_code == 200:
+                    raise Exception(
+                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                    )
+            elif command == "netconf":
+                method = "netconf"
+                responseMessage = "ok: Using NETCONF method."
+
+                r = post_to_webex(responseMessage)
+                if not r.status_code == 200:
+                    raise Exception(
+                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                    )
+
+            if not method:
+                responseMessage = "Error: No specified method."
+
+            if method == "restconf":
+                if command == "create":
+                    responseMessage = restconf.create()
+                elif command == "delete":
+                    responseMessage = restconf.delete()
+                elif command == "enable":
+                    responseMessage = restconf.enable()
+                elif command == "disable":
+                    responseMessage = restconf.disable()
+                elif command == "status":
+                    responseMessage = restconf.status()
+                elif command == "gigabit_status":
+                    responseMessage = gigabit_status()
+                elif command == "showrun":
+                    responseMessage = showrun()
+                else:
+                    responseMessage = "Error: Unknown command."
+            elif method == "netconf":
+                if command == "create":
+                    responseMessage = netconf.create()
+                elif command == "delete":
+                    responseMessage = netconf.delete()
+                elif command == "enable":
+                    responseMessage = netconf.enable()
+                elif command == "disable":
+                    responseMessage = netconf.disable()
+                elif command == "status":
+                    responseMessage = netconf.status()
+                elif command == "gigabit_status":
+                    responseMessage = gigabit_status()
+                elif command == "showrun":
+                    responseMessage = showrun()
+                else:
+                    responseMessage = "Error: Unknown command."
 
             print(f"Response Message: {responseMessage}\n")
 
             if command == "showrun" and responseMessage == "ok":
-                filename = "show_run_66070091_CSR1kv.txt"  # ให้ตรงกับไฟล์ที่ ansible สร้าง
-                fileobject = open(filename, "rb")
-                filetype = "text/plain"
-
-                postData = {
-                    "roomId": roomIdToGetMessages,
-                    "text": "show running config",
-                    "files": (filename, fileobject, filetype),
-                }
-                postData = encoder(postData)
-
-                HTTPHeaders = {
-                    "Authorization": f"Bearer {ACCESS_TOKEN}",
-                    "Content-Type": postData.content_type
-                }
-
-                r = requests.post(WEBEX_API_URL, data=postData, headers=HTTPHeaders)
-                fileobject.close()
-
+                filename = "show_run_66070091_CSR1kv.txt"
+                r = post_to_webex("show running config", file_path=filename, filename=filename, filetype="text/plain")
                 if r.status_code != 200:
                     raise Exception(
                         f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
                     )
                 continue
-
             else:
-                postData = {
-                    "roomId": roomIdToGetMessages,
-                    "text": responseMessage
-                }
-                postData = json.dumps(postData)
-
-                HTTPHeaders = {
-                    "Authorization": f"Bearer {ACCESS_TOKEN}",
-                    "Content-Type": "application/json"
-                }
-
-            r = requests.post(WEBEX_API_URL, data=postData, headers=HTTPHeaders)
-
-            if not r.status_code == 200:
-                raise Exception(
-                    f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
-                )
+                r = post_to_webex(responseMessage)
+                if not r.status_code == 200:
+                    raise Exception(
+                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                    )
 
 except KeyboardInterrupt:
     print("\nProgram terminated by user.")
