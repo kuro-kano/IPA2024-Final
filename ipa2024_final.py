@@ -11,13 +11,9 @@ import os
 import time
 import requests
 
-import restconf_final as restconf
-import netconf_final as netconf
-
 from functions.webex_input_format import format_check
 from functions.webex_sent_message import post_to_webex
-from netmiko_final import gigabit_status, read_motd
-from ansible_final import showrun, conf_motd
+from functions.command_execute import restconf_command, netconf_command, netmiko_command, ansible_command
 
 load_dotenv()
 
@@ -26,152 +22,119 @@ WEBEX_API_URL = "https://webexapis.com/v1/messages"
 roomIdToGetMessages = os.getenv("ROOM_ID")
 
 last_message_id = None
-
-# RESTCONF or NETCONF
-valid_method = ("restconf", "netconf")
-
-method_required_command = ("create", "delete", "enable", "disable", "status")
-other_commands = ("showrun", "gigabit_status", "motd")
-
 method = ""
+
+VALID_METHODS = ("restconf", "netconf")
+REQUIRED_COMMANDS = ("create", "delete", "enable", "disable", "status")
+OTHER_COMMANDS = ("gigabit_status", "motd", "showrun")
 
 try:
     print("Starting...")
     while True:
         time.sleep(0.1)
 
+        # Fetch latest message from Webex
         getParameters = {"roomId": roomIdToGetMessages, "max": 1}
         getHTTPHeader = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
-
         r = requests.get(WEBEX_API_URL, params=getParameters, headers=getHTTPHeader)
 
-        if not r.status_code == 200:
+        if r.status_code != 200:
             raise Exception(
                 f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
             )
 
         json_data = r.json()
-
         if len(json_data["items"]) == 0:
             raise Exception("There are no messages in the room.")
 
-        messages = json_data["items"]
-        latest = messages[0]
+        latest = json_data["items"][0]
 
+        # Only process new messages
         if latest["id"] == last_message_id:
             continue
         last_message_id = latest["id"]
+
         message = latest.get("text", "") or ""
+        if not message.startswith("/66070091 "):
+            continue
 
-        if message.startswith("/66070091 "):
-            print(f"\nReceived message: {message}")
+        print(f"\nReceived message: {message}")
+        command = message.split(" ")
+        responseMessage = ""
 
-            command = message.split(" ")
+        method_invalid_and_invalid_format = command[1] in VALID_METHODS or (command[1] in REQUIRED_COMMANDS and method == "")
 
-            # Handle MOTD directly: /66070091 <ip> motd [text...]
-            if len(command) >= 3 and command[2] == "motd":
-                host_ip = command[1]
-                if len(command) == 3:
-                    # Read MOTD
-                    responseMessage = read_motd(host_ip)
+        if len(command) == 2 and method_invalid_and_invalid_format:
+            # Method selection: /66070091 restconf|netconf
+            if command[1] in VALID_METHODS:
+                method = command[1]
+                responseMessage = f"ok: Using {method.upper()} method."
+            # Invalid method selection
+            elif command[1] in REQUIRED_COMMANDS and method == "":
+                responseMessage = "Error: Invalid method specified."
+            print(f"Response message: {responseMessage}\n")
+            r = post_to_webex(responseMessage)
+            if r.status_code != 200:
+                raise Exception(
+                    f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                )
+            continue
+
+        # Parse structured commands
+        result = format_check(command)
+        if isinstance(result, str):
+            responseMessage = result
+        elif not result:
+            responseMessage = "Error: Invalid command format."
+        else:
+            host_ip, command = result
+            print(f"command: {command}, host: {host_ip}")
+
+            # Commands that require a method
+            if command in REQUIRED_COMMANDS:
+                if not method:
+                    responseMessage = "Error: No method specified."
                 else:
-                    # Configure MOTD
+
+                    if method == "restconf":
+                        responseMessage = restconf_command(host_ip, command)
+                    elif method == "netconf":
+                        responseMessage = netconf_command(host_ip, command)
+
+            # Other commands (no method required)
+            elif command in OTHER_COMMANDS:
+                if command == "motd":
+                    # /66070091 <ip> motd [text...]
                     motd_message = " ".join(command[3:]).strip()
-                    if motd_message == "":
-                        responseMessage = "Error: Invalid command format."
+                    if motd_message:
+                        responseMessage = ansible_command("motd", host_ip, motd_message)
                     else:
-                        responseMessage = conf_motd(host_ip, motd_message)
-
-                print(f"Response Message: {responseMessage}\n")
-                r = post_to_webex(responseMessage)
-                if not r.status_code == 200:
-                    raise Exception(
-                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
-                    )
-                continue  # skip the rest of the parsing for MOTD
-
-            if len(command) == 2 and command[1] in valid_method:
-                command_method = command[1]
-                if command_method == "restconf":
-                    method = "restconf"
-                    responseMessage = "ok: Using RESTCONF method."
-                elif command_method == "netconf":
-                    method = "netconf"
-                    responseMessage = "ok: Using NETCONF method."
-                else:
-                    responseMessage = "Error: No method specified."
+                        responseMessage = ansible_command("motd", host_ip)
+                elif command == "gigabit_status":
+                    responseMessage = netmiko_command(host_ip, command)
+                elif command == "showrun":
+                    responseMessage = ansible_command(host_ip, command)
             else:
-                if method == "":
-                    responseMessage = "Error: No method specified."
-                else:
-                    # Check command format
-                    result = format_check(command)
-                    if isinstance(result, str):
-                        responseMessage = result
-                    else:
-                        # Expect (ip, command) from format_check for non-motd
-                        if not result:
-                            responseMessage = "Error: Invalid command format."
-                        else:
-                            host_ip, command = result
-                            print(command)
+                responseMessage = "Error: Unknown command."
 
-                            if command in method_required_command:
-                                if method == "restconf":
-                                    if command == "create":
-                                        responseMessage = restconf.create(host_ip)
-                                    elif command == "delete":
-                                        responseMessage = restconf.delete(host_ip)
-                                    elif command == "enable":
-                                        responseMessage = restconf.enable(host_ip)
-                                    elif command == "disable":
-                                        responseMessage = restconf.disable(host_ip)
-                                    elif command == "status":
-                                        responseMessage = restconf.status(host_ip)
-                                    else:
-                                        responseMessage = "Error: Unknown command."
-                                elif method == "netconf":
-                                    if command == "create":
-                                        responseMessage = netconf.create(host_ip)
-                                    elif command == "delete":
-                                        responseMessage = netconf.delete(host_ip)
-                                    elif command == "enable":
-                                        responseMessage = netconf.enable(host_ip)
-                                    elif command == "disable":
-                                        responseMessage = netconf.disable(host_ip)
-                                    elif command == "status":
-                                        responseMessage = netconf.status(host_ip)
-                                    else:
-                                        responseMessage = "Error: Unknown command."
-                                else:
-                                    responseMessage = "Error: No method specified."
+        print(f"Response message: {responseMessage}\n")
 
-                            elif command == "gigabit_status":
-                                responseMessage = gigabit_status(host_ip)
-                            elif command == "showrun":
-                                responseMessage = showrun(host_ip)
-                            elif command == "motd":
-                                if motd_message == "":
-                                    responseMessage = read_motd(host_ip)
-                                else:
-                                    responseMessage = conf_motd(host_ip, motd_message)
-                            
+        # Send response (attach file for showrun if success)
+        if command == "showrun" and responseMessage == "ok":
+            filename = "show_run_66070091_CSR1kv.txt"
+            r = post_to_webex(
+                "show running config",
+                file_path=filename,
+                filename=filename,
+                filetype="text/plain",
+            )
+        else:
+            r = post_to_webex(responseMessage)
 
-            print(f"Response Message: {responseMessage}\n")
-
-            if command == "showrun" and responseMessage == "ok":
-                filename = "show_run_66070091_CSR1kv.txt"
-                r = post_to_webex("show running config", file_path=filename, filename=filename, filetype="text/plain")
-                if r.status_code != 200:
-                    raise Exception(
-                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
-                    )
-            else:
-                r = post_to_webex(responseMessage)
-                if not r.status_code == 200:
-                    raise Exception(
-                        f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
-                    )
+        if r.status_code != 200:
+            raise Exception(
+                f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+            )
 
 except KeyboardInterrupt:
     print("\nProgram terminated by user.")
