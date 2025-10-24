@@ -84,7 +84,7 @@ def format_check(command):
 try:
     print("Starting...")
     while True:
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         getParameters = {"roomId": roomIdToGetMessages, "max": 1}
         getHTTPHeader = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
