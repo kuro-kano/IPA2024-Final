@@ -5,20 +5,19 @@ from netmiko.exceptions import NetmikoTimeoutException
 from pprint import pprint
 import time
 
-device_ip = "10.0.15.61"
 username = "admin"
 password = "cisco"
 
-device_params = {
-    "device_type": "cisco_ios",
-    "ip": device_ip,
-    "username": username,
-    "password": password,
-}
 
-
-def gigabit_status():
+def gigabit_status(device_ip):
     """Get GigabitEthernet interface status repeatedly until successful."""
+    device_params = {
+        "device_type": "cisco_ios",
+        "ip": device_ip,
+        "username": username,
+        "password": password,
+    }
+
     ans = ""
     while True:
         try:

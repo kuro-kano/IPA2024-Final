@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 
 
-def showrun():
+def showrun(host_ip):
     """Get running-config from router via Ansible playbook."""
     PLAYBOOK = "ansible/playbook.yaml"
 
@@ -15,7 +15,7 @@ def showrun():
     ansible_pass = "cisco"
     enable_pass = ""
 
-    target_ip = "10.0.15.61"
+    target_ip = host_ip
 
     inv_lines = [
         "[routers]",
