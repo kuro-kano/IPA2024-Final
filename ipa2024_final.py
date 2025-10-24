@@ -29,7 +29,7 @@ roomIdToGetMessages = os.getenv("ROOM_ID")
 last_message_id = None
 
 # RESTCONF or NETCONF
-valid_method = ["restconf", "netconf"]
+valid_method = ("restconf", "netconf")
 method = ""
 
 def post_to_webex(text, file_path=None, filename=None, filetype="text/plain"):
@@ -116,60 +116,63 @@ try:
             command = message.split(" ")
 
             if len(command) == 2 and command[1] in valid_method:
-                command = command[1]
-                if command == "restconf":
+                command_method = command[1]
+                if command_method == "restconf":
                     method = "restconf"
                     responseMessage = "ok: Using RESTCONF method."
-                elif command == "netconf":
+                elif command_method == "netconf":
                     method = "netconf"
                     responseMessage = "ok: Using NETCONF method."
                 else:
                     responseMessage = "Error: No method specified."
             else:
-                # Check command format
-                result = format_check(command)
-                if isinstance(result, str):
-                    # It's an error message
-                    responseMessage = result
+                if method == "":
+                    responseMessage = "Error: No method specified."
                 else:
-                    # It's a tuple (ip, command)
-                    host_ip, command = result
-                    print(command)
+                    # Check command format
+                    result = format_check(command)
+                    if isinstance(result, str):
+                        # It's an error message
+                        responseMessage = result
+                    else:
+                        # It's a tuple (ip, command)
+                        host_ip, command = result
+                        print(command)
 
-                    if method == "restconf":
-                        if command == "create":
-                            responseMessage = restconf.create(host_ip)
-                        elif command == "delete":
-                            responseMessage = restconf.delete(host_ip)
-                        elif command == "enable":
-                            responseMessage = restconf.enable(host_ip)
-                        elif command == "disable":
-                            responseMessage = restconf.disable(host_ip)
-                        elif command == "status":
-                            responseMessage = restconf.status(host_ip)
-                        elif command == "gigabit_status":
-                            responseMessage = gigabit_status()
-                        elif command == "showrun":
-                            responseMessage = showrun()
-                        else:
-                            responseMessage = "Error: Unknown command."
-                    elif method == "netconf":
-                        if command == "create":
-                            responseMessage = netconf.create(host_ip)
-                        elif command == "delete":
-                            responseMessage = netconf.delete(host_ip)
-                        elif command == "enable":
-                            responseMessage = netconf.enable(host_ip)
-                        elif command == "disable":
-                            responseMessage = netconf.disable(host_ip)
-                        elif command == "status":
-                            responseMessage = netconf.status(host_ip)
-                        elif command == "gigabit_status":
-                            responseMessage = gigabit_status()
-                        elif command == "showrun":
-                            responseMessage = showrun()
-                        else:
-                            responseMessage = "Error: Unknown command."
+                        if method == "restconf":
+                            if command == "create":
+                                responseMessage = restconf.create(host_ip)
+                            elif command == "delete":
+                                responseMessage = restconf.delete(host_ip)
+                            elif command == "enable":
+                                responseMessage = restconf.enable(host_ip)
+                            elif command == "disable":
+                                responseMessage = restconf.disable(host_ip)
+                            elif command == "status":
+                                responseMessage = restconf.status(host_ip)
+                            elif command == "gigabit_status":
+                                responseMessage = gigabit_status(host_ip)
+                            elif command == "showrun":
+                                responseMessage = showrun(host_ip)
+                            else:
+                                responseMessage = "Error: Unknown command."
+                        elif method == "netconf":
+                            if command == "create":
+                                responseMessage = netconf.create(host_ip)
+                            elif command == "delete":
+                                responseMessage = netconf.delete(host_ip)
+                            elif command == "enable":
+                                responseMessage = netconf.enable(host_ip)
+                            elif command == "disable":
+                                responseMessage = netconf.disable(host_ip)
+                            elif command == "status":
+                                responseMessage = netconf.status(host_ip)
+                            elif command == "gigabit_status":
+                                responseMessage = gigabit_status(host_ip)
+                            elif command == "showrun":
+                                responseMessage = showrun(host_ip)
+                            else:
+                                responseMessage = "Error: Unknown command."
 
             print(f"Response Message: {responseMessage}\n")
 
