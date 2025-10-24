@@ -9,7 +9,7 @@ import time
 
 def showrun(host_ip):
     """Get running-config from router via Ansible playbook."""
-    PLAYBOOK = "ansible/playbook.yaml"
+    PLAYBOOK = "ansible/playbook-showrun.yaml"
 
     ansible_user = "admin"
     ansible_pass = "cisco"
