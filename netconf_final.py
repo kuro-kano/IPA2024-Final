@@ -36,7 +36,9 @@ def _find_key(data, suffix):
 def _rpcerror_to_msg(e, action):
     # Handle non-existing interface (NETCONF data-missing)
     if getattr(e, "tag", "") == "data-missing":
-        return f"Error: Cannot {action}: Interface Loopback66070091 (checked via NETCONF)"
+        return (
+            f"Error: Cannot {action}: Interface Loopback66070091 (checked via NETCONF)"
+        )
     return f"Error: NETCONF RPC failed - {e}"
 
 
@@ -65,7 +67,9 @@ def create(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is created successfully using NETCONF"
+                return (
+                    "Interface Loopback66070091 is created successfully using NETCONF"
+                )
             else:
                 return "Error: Cannot create Interface Loopback66070091 (checked via NETCONF)"
     except RPCError as e:
@@ -92,7 +96,9 @@ def delete(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is deleted successfully using NETCONF"
+                return (
+                    "Interface Loopback66070091 is deleted successfully using NETCONF"
+                )
             else:
                 return "Error: Cannot delete: Interface Loopback66070091 (checked via NETCONF)"
     except RPCError as e:
@@ -120,7 +126,9 @@ def enable(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is enabled successfully using NETCONF"
+                return (
+                    "Interface Loopback66070091 is enabled successfully using NETCONF"
+                )
             else:
                 return "Error: Cannot enable: Interface Loopback66070091 (checked via NETCONF)"
     except RPCError as e:
@@ -148,7 +156,9 @@ def disable(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is disabled successfully using NETCONF"
+                return (
+                    "Interface Loopback66070091 is disabled successfully using NETCONF"
+                )
             else:
                 return "Error: Cannot disable: Interface Loopback66070091 (checked via NETCONF)"
     except RPCError as e:

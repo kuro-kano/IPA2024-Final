@@ -13,7 +13,12 @@ import requests
 
 from functions.webex_input_format import format_check
 from functions.webex_sent_message import post_to_webex
-from functions.command_execute import restconf_command, netconf_command, netmiko_command, ansible_command
+from functions.command_execute import (
+    restconf_command,
+    netconf_command,
+    netmiko_command,
+    ansible_command,
+)
 
 load_dotenv()
 
@@ -73,10 +78,14 @@ try:
             print(f"Response Message: {responseMessage}\n")
             r = post_to_webex(responseMessage)
             if r.status_code != 200:
-                raise Exception(f"Incorrect reply from Webex Teams API. Status code: {r.status_code}")
+                raise Exception(
+                    f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
+                )
             continue
 
-        method_invalid_and_invalid_format = command[1] in VALID_METHODS or (command[1] in REQUIRED_COMMANDS and method == "")
+        method_invalid_and_invalid_format = command[1] in VALID_METHODS or (
+            command[1] in REQUIRED_COMMANDS and method == ""
+        )
 
         if len(command) == 2 and method_invalid_and_invalid_format:
             # Method selection: /66070091 restconf|netconf

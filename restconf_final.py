@@ -17,7 +17,7 @@ def create(host_ip):
     """Create Loopback66070091 interface."""
     # First, check if interface already exists
     api_url_check = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
-    
+
     try:
         # Check if interface exists
         check_resp = requests.get(
@@ -26,11 +26,11 @@ def create(host_ip):
             headers=headers,
             verify=False,
         )
-        
+
         if check_resp.status_code == 200:
             print("Interface already exists")
             return "Error: Interface Loopback66070091 already existed (checked via RESTCONF)"
-        
+
         # If interface doesn't exist (404), proceed to create it
         api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
         yangConfig = {
@@ -57,7 +57,9 @@ def create(host_ip):
             return "Interface Loopback66070091 is created successfully using RESTCONF"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Error: Cannot create Interface Loopback66070091 (checked via RESTCONF)"
+            return (
+                "Error: Cannot create Interface Loopback66070091 (checked via RESTCONF)"
+            )
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
@@ -162,7 +164,9 @@ def status(host_ip):
             )
 
             if admin_status == "up" and oper_status == "up":
-                return "Interface Loopback66070091, Status: Enabled (checked via RESTCONF)"
+                return (
+                    "Interface Loopback66070091, Status: Enabled (checked via RESTCONF)"
+                )
             elif admin_status == "down" and oper_status == "down":
                 return "Interface Loopback66070091, Status: Disabled (checked via RESTCONF)"
             else:

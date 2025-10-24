@@ -1,6 +1,18 @@
+"""Module to format and validate Webex command inputs."""
+
+
 def format_check(command):
     """Check command format for non-MOTD commands."""
-    valid_commands = ("create", "delete", "enable", "disable", "status", "gigabit_status", "showrun", "motd")
+    valid_commands = (
+        "create",
+        "delete",
+        "enable",
+        "disable",
+        "status",
+        "gigabit_status",
+        "showrun",
+        "motd",
+    )
 
     if len(command) == 2:
         # Case: only "/<id> <something>"

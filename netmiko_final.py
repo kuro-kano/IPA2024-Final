@@ -64,7 +64,10 @@ def read_motd(device_ip):
             with ConnectHandler(**device_params) as ssh:
                 # 'show banner motd' prints the banner exactly without delimiters
                 output = ssh.send_command(
-                    "show banner motd", use_textfsm=True, strip_command=True, strip_prompt=True
+                    "show banner motd",
+                    use_textfsm=True,
+                    strip_command=True,
+                    strip_prompt=True,
                 )
                 if not output:
                     return "Error: No MOTD Configured"

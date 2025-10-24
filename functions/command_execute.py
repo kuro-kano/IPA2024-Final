@@ -5,6 +5,7 @@ import netconf_final as netconf
 from netmiko_final import gigabit_status, read_motd
 from ansible_final import showrun, conf_motd
 
+
 def restconf_command(host_ip, command):
     """Execute RESTCONF commands."""
     if command == "create":
@@ -19,6 +20,7 @@ def restconf_command(host_ip, command):
         return restconf.status(host_ip)
     else:
         return "Error: Unknown command."
+
 
 def netconf_command(host_ip, command):
     """Execute NETCONF commands."""
@@ -35,6 +37,7 @@ def netconf_command(host_ip, command):
     else:
         return "Error: Unknown command."
 
+
 def netmiko_command(host_ip, command):
     """Execute Netmiko commands."""
     if command == "gigabit_status":
@@ -43,6 +46,7 @@ def netmiko_command(host_ip, command):
         return read_motd(host_ip)
     else:
         return "Error: Unknown command."
+
 
 def ansible_command(host_ip, command, motd_message=""):
     """Execute Ansible commands."""
