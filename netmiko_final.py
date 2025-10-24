@@ -48,3 +48,30 @@ def gigabit_status(device_ip):
         except NetmikoTimeoutException:
             pprint("Connection timeout - retrying in 2 seconds ...")
             time.sleep(2)
+
+
+def read_motd(device_ip):
+    """Read MOTD banner text from a CSR1000v. Returns banner text or Error string."""
+    device_params = {
+        "device_type": "cisco_ios",
+        "ip": device_ip,
+        "username": username,
+        "password": password,
+    }
+
+    while True:
+        try:
+            with ConnectHandler(**device_params) as ssh:
+                # 'show banner motd' prints the banner exactly without delimiters
+                output = ssh.send_command(
+                    "show banner motd", use_textfsm=False, strip_command=True, strip_prompt=True
+                )
+                if not output:
+                    return "Error: No MOTD Configured"
+                low = output.lower()
+                if "not configured" in low or "no banner" in low:
+                    return "Error: No MOTD Configured"
+                return output.strip()
+        except NetmikoTimeoutException:
+            pprint("Connection timeout - retrying in 2 seconds ...")
+            time.sleep(2)
