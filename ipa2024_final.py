@@ -30,7 +30,6 @@ last_message_id = None
 
 # RESTCONF or NETCONF
 method = ""
-host_ip = ""
 
 def post_to_webex(text, file_path=None, filename=None, filetype="text/plain"):
     """Post a message or a file to the configured Webex room."""
@@ -56,6 +55,31 @@ def post_to_webex(text, file_path=None, filename=None, filetype="text/plain"):
         }
         r = requests.post(WEBEX_API_URL, data=json.dumps(postData), headers=headers)
     return r
+
+def format_check(command):
+    """Check command format."""
+    valid_commands = ["create", "delete", "enable", "disable", "status", "gigabit_status", "showrun"]
+    
+    if len(command) == 2:
+        # Check if command[1] is an IP address (contains dots)
+        if '.' in command[1] and all(part.isdigit() for part in command[1].split('.')):
+            return "Error: Command not found."
+        # Check if command[1] is a command
+        elif command[1] in valid_commands:
+            return "Error: No IP specified."
+        else:
+            return "Error: Invalid command format."
+    elif len(command) == 3:
+        # Check if command[1] is a command and command[2] is IP
+        if command[1] in valid_commands and '.' in command[2]:
+            return (command[2], command[1])  # Return tuple (ip, command)
+        # Check if command[1] is IP and command[2] is a command (correct format)
+        elif '.' in command[1] and command[2] in valid_commands:
+            return (command[1], command[2])  # Return tuple (ip, command)
+        else:
+            return "Error: Invalid command format."
+    else:
+        return "Error: Invalid command format."
 
 try:
     print("Starting...")
@@ -89,7 +113,6 @@ try:
             print(f"\nReceived message: {message}")
 
             command = message.split(" ")
-            print(command)
 
             if method == "" and len(command) == 2:
                 command = command[1]
@@ -102,11 +125,15 @@ try:
                 else:
                     responseMessage = "Error: No method specified."
             else:
-                if len(command) != 3:
-                    responseMessage = "Error: Invalid command format."
+                # Check command format
+                result = format_check(command)
+                if isinstance(result, str):
+                    # It's an error message
+                    responseMessage = result
                 else:
-                    host_ip = command[1]
-                    command = command[2]
+                    # It's a tuple (ip, command)
+                    host_ip, command = result
+                    print(command)
 
                     if method == "restconf":
                         if command == "create":
@@ -152,7 +179,6 @@ try:
                     raise Exception(
                         f"Incorrect reply from Webex Teams API. Status code: {r.status_code}"
                     )
-                continue
             else:
                 r = post_to_webex(responseMessage)
                 if not r.status_code == 200:
