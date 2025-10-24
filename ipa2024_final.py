@@ -7,16 +7,16 @@
 #######################################################################################
 
 import requests
-import json
 import time
 import os
 
-from requests_toolbelt.multipart.encoder import MultipartEncoder as encoder
 from dotenv import load_dotenv
 
 import netconf_final as netconf
 import restconf_final as restconf
 
+from functions.webex_input_format import format_check
+from functions.webex_sent_message import post_to_webex
 from netmiko_final import gigabit_status
 from ansible_final import showrun
 
@@ -31,56 +31,6 @@ last_message_id = None
 # RESTCONF or NETCONF
 valid_method = ("restconf", "netconf")
 method = ""
-
-def post_to_webex(text, file_path=None, filename=None, filetype="text/plain"):
-    """Post a message or a file to the configured Webex room."""
-    if file_path:
-        fileobject = open(file_path, "rb")
-        postData = {
-            "roomId": roomIdToGetMessages,
-            "text": text,
-            "files": (filename or os.path.basename(file_path), fileobject, filetype),
-        }
-        multipart = encoder(postData)
-        headers = {
-            "Authorization": f"Bearer {ACCESS_TOKEN}",
-            "Content-Type": multipart.content_type,
-        }
-        r = requests.post(WEBEX_API_URL, data=multipart, headers=headers)
-        fileobject.close()
-    else:
-        postData = {"roomId": roomIdToGetMessages, "text": text}
-        headers = {
-            "Authorization": f"Bearer {ACCESS_TOKEN}",
-            "Content-Type": "application/json",
-        }
-        r = requests.post(WEBEX_API_URL, data=json.dumps(postData), headers=headers)
-    return r
-
-def format_check(command):
-    """Check command format."""
-    valid_commands = ["create", "delete", "enable", "disable", "status", "gigabit_status", "showrun"]
-    
-    if len(command) == 2:
-        # Check if command[1] is an IP address (contains dots)
-        if '.' in command[1] and all(part.isdigit() for part in command[1].split('.')):
-            return "Error: Command not found."
-        # Check if command[1] is a command
-        elif command[1] in valid_commands:
-            return "Error: No IP specified."
-        else:
-            return "Error: Invalid command format."
-    elif len(command) == 3:
-        # Check if command[1] is a command and command[2] is IP
-        if command[1] in valid_commands and '.' in command[2]:
-            return (command[2], command[1])  # Return tuple (ip, command)
-        # Check if command[1] is IP and command[2] is a command (correct format)
-        elif '.' in command[1] and command[2] in valid_commands:
-            return (command[1], command[2])  # Return tuple (ip, command)
-        else:
-            return "Error: Invalid command format."
-    else:
-        return "Error: Invalid command format."
 
 try:
     print("Starting...")
