@@ -29,6 +29,7 @@ roomIdToGetMessages = os.getenv("ROOM_ID")
 last_message_id = None
 
 # RESTCONF or NETCONF
+valid_method = ["restconf", "netconf"]
 method = ""
 
 def post_to_webex(text, file_path=None, filename=None, filetype="text/plain"):
@@ -114,7 +115,7 @@ try:
 
             command = message.split(" ")
 
-            if method == "" and len(command) == 2:
+            if len(command) == 2 and command[1] in valid_method:
                 command = command[1]
                 if command == "restconf":
                     method = "restconf"
