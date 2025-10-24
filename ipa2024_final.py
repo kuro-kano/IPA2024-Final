@@ -11,6 +11,9 @@ import os
 import time
 import requests
 
+import restconf_final as restconf
+import netconf_final as netconf
+
 from functions.webex_input_format import format_check
 from functions.webex_sent_message import post_to_webex
 from netmiko_final import gigabit_status, read_motd
@@ -66,7 +69,7 @@ try:
             command = message.split(" ")
 
             # Handle MOTD directly: /66070091 <ip> motd [text...]
-            if len(command) >= 3 and command[2].lower() == "motd":
+            if len(command) >= 3 and command[2] == "motd":
                 host_ip = command[1]
                 if len(command) == 3:
                     # Read MOTD
