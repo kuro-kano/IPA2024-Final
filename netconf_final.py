@@ -57,9 +57,9 @@ def create(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is created successfully"
+                return "Interface Loopback66070091 is created successfully using NETCONF"
             else:
-                return "Error: Cannot create Interface Loopback66070091"
+                return "Error: Cannot create Interface Loopback66070091 (checked via NETCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -82,9 +82,9 @@ def delete(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is deleted successfully"
+                return "Interface Loopback66070091 is deleted successfully using NETCONF"
             else:
-                return "Cannot delete: Interface Loopback66070091"
+                return "Cannot delete: Interface Loopback66070091 (checked via NETCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -108,9 +108,9 @@ def enable(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is enabled successfully"
+                return "Interface Loopback66070091 is enabled successfully using NETCONF"
             else:
-                return "Cannot enable: Interface Loopback66070091"
+                return "Cannot enable: Interface Loopback66070091 (checked via NETCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -134,9 +134,9 @@ def disable(device_ip):
             xml_data = reply.xml
             print(xml_data)
             if "<ok/>" in xml_data:
-                return "Interface Loopback66070091 is disabled successfully"
+                return "Interface Loopback66070091 is disabled successfully using NETCONF"
             else:
-                return "Cannot disable: Interface Loopback66070091"
+                return "Cannot disable: Interface Loopback66070091 (checked via NETCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router {device_ip} - {str(e)}"
@@ -170,13 +170,13 @@ def status(device_ip):
                     oper_status = oper_status.get("#text", "")
 
                 if admin_status == "up" and oper_status == "up":
-                    return "Interface Loopback66070091, Status: Enabled"
+                    return "Interface Loopback66070091, Status: Enabled (checked via NETCONF)"
                 elif admin_status == "down" and oper_status == "down":
-                    return "Interface Loopback66070091, Status: Disabled"
+                    return "Interface Loopback66070091, Status: Disabled (checked via NETCONF)"
                 else:
-                    return f"Interface Loopback66070091, Admin: {admin_status}, Oper: {oper_status}"
+                    return f"Interface Loopback66070091, Admin: {admin_status}, Oper: {oper_status} (checked via NETCONF)"
             else:
-                return "Error: No Interface Loopback66070091"
+                return "Error: No Interface Loopback66070091 (checked via NETCONF)"
 
     except Exception as e:
         print(f"Exception: {e}")

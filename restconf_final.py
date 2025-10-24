@@ -29,7 +29,7 @@ def create(host_ip):
         
         if check_resp.status_code == 200:
             print("Interface already exists")
-            return "Error: Interface Loopback66070091 already existed"
+            return "Error: Interface Loopback66070091 already existed (checked via RESTCONF)"
         
         # If interface doesn't exist (404), proceed to create it
         api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
@@ -54,10 +54,10 @@ def create(host_ip):
 
         if resp.status_code >= 200 and resp.status_code <= 299:
             print(f"STATUS OK: {resp.status_code}")
-            return "Interface Loopback66070091 is created successfully"
+            return "Interface Loopback66070091 is created successfully using RESTCONF"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Error: Cannot create Interface Loopback66070091"
+            return "Error: Cannot create Interface Loopback66070091 (checked via RESTCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
@@ -76,10 +76,10 @@ def delete(host_ip):
 
         if resp.status_code >= 200 and resp.status_code <= 299:
             print(f"STATUS OK: {resp.status_code}")
-            return "Interface Loopback66070091 is deleted successfully"
+            return "Interface Loopback66070091 is deleted successfully using RESTCONF"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Cannot delete: Interface Loopback66070091"
+            return "Cannot delete: Interface Loopback66070091 (checked via RESTCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
@@ -103,10 +103,10 @@ def enable(host_ip):
 
         if resp.status_code >= 200 and resp.status_code <= 299:
             print(f"STATUS OK: {resp.status_code}")
-            return "Interface Loopback66070091 is enabled successfully"
+            return "Interface Loopback66070091 is enabled successfully using RESTCONF"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Cannot enable: Interface Loopback66070091"
+            return "Cannot enable: Interface Loopback66070091 (checked via RESTCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
@@ -130,10 +130,10 @@ def disable(host_ip):
 
         if resp.status_code >= 200 and resp.status_code <= 299:
             print(f"STATUS OK: {resp.status_code}")
-            return "Interface Loopback66070091 is disabled successfully"
+            return "Interface Loopback66070091 is disabled successfully using RESTCONF"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Cannot disable: Interface Loopback66070091"
+            return "Cannot disable: Interface Loopback66070091 (checked via RESTCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
@@ -162,18 +162,18 @@ def status(host_ip):
             )
 
             if admin_status == "up" and oper_status == "up":
-                return "Interface Loopback66070091, Status: Enabled"
+                return "Interface Loopback66070091, Status: Enabled (checked via RESTCONF)"
             elif admin_status == "down" and oper_status == "down":
-                return "Interface Loopback66070091, Status: Disabled"
+                return "Interface Loopback66070091, Status: Disabled (checked via RESTCONF)"
             else:
-                return f"Interface Loopback66070091, Admin: {admin_status}, Oper: {oper_status}"
+                return f"Interface Loopback66070091, Admin: {admin_status}, Oper: {oper_status} (checked via RESTCONF)"
 
         elif resp.status_code == 404:
             print(f"STATUS NOT FOUND: {resp.status_code}")
-            return "Error: No Interface Loopback66070091"
+            return "Error: No Interface Loopback66070091 (checked via RESTCONF)"
         else:
             print(f"Error. Status Code: {resp.status_code}")
-            return "Cannot retrieve status: Interface Loopback66070091"
+            return "Cannot retrieve status: Interface Loopback66070091 (checked via RESTCONF)"
     except Exception as e:
         print(f"Exception: {e}")
         return f"Error: Cannot connect to router - {str(e)}"
