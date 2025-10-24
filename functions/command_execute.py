@@ -49,7 +49,7 @@ def ansible_command(host_ip, command, motd_message=""):
     if command == "showrun":
         return showrun(host_ip)
     elif command == "motd":
-        if motd_message == "":
+        if motd_message != "":
             return conf_motd(host_ip, motd_message)
         else:
             return read_motd(host_ip)

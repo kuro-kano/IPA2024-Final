@@ -26,7 +26,7 @@ method = ""
 
 VALID_METHODS = ("restconf", "netconf")
 REQUIRED_COMMANDS = ("create", "delete", "enable", "disable", "status")
-OTHER_COMMANDS = ("gigabit_status", "motd", "showrun")
+OTHER_COMMANDS = ("gigabit_status", "showrun")
 
 try:
     print("Starting...")
@@ -62,6 +62,20 @@ try:
         command = message.split(" ")
         responseMessage = ""
 
+        # Special handling for MOTD with text
+        if len(command) >= 3 and command[2] == "motd":
+            host_ip = command[1]
+            motd_message = message.partition(" motd ")[2].strip()
+            if motd_message:
+                responseMessage = ansible_command(host_ip, "motd", motd_message)
+            else:
+                responseMessage = ansible_command(host_ip, "motd")
+            print(f"Response Message: {responseMessage}\n")
+            r = post_to_webex(responseMessage)
+            if r.status_code != 200:
+                raise Exception(f"Incorrect reply from Webex Teams API. Status code: {r.status_code}")
+            continue
+
         method_invalid_and_invalid_format = command[1] in VALID_METHODS or (command[1] in REQUIRED_COMMANDS and method == "")
 
         if len(command) == 2 and method_invalid_and_invalid_format:
@@ -95,7 +109,6 @@ try:
                 if not method:
                     responseMessage = "Error: No method specified."
                 else:
-
                     if method == "restconf":
                         responseMessage = restconf_command(host_ip, command)
                     elif method == "netconf":
@@ -103,14 +116,7 @@ try:
 
             # Other commands (no method required)
             elif command in OTHER_COMMANDS:
-                if command == "motd":
-                    # /66070091 <ip> motd [text...]
-                    motd_message = " ".join(command[3:]).strip()
-                    if motd_message:
-                        responseMessage = ansible_command("motd", host_ip, motd_message)
-                    else:
-                        responseMessage = ansible_command("motd", host_ip)
-                elif command == "gigabit_status":
+                if command == "gigabit_status":
                     responseMessage = netmiko_command(host_ip, command)
                 elif command == "showrun":
                     responseMessage = ansible_command(host_ip, command)
