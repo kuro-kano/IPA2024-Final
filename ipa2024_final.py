@@ -14,8 +14,8 @@ import os
 from requests_toolbelt.multipart.encoder import MultipartEncoder as encoder
 from dotenv import load_dotenv
 
-from restconf_final import create, status, delete, enable, disable
-from netmiko_final import gigabit_status 
+from netconf_final import create, status, delete, enable, disable
+from netmiko_final import gigabit_status
 from ansible_final import showrun
 
 load_dotenv()
