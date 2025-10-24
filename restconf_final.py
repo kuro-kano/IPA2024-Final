@@ -15,19 +15,35 @@ basicauth = ("admin", "cisco")
 
 def create(host_ip):
     """Create Loopback66070091 interface."""
-    api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
-    yangConfig = {
-        "ietf-interfaces:interface": {
-            "name": "Loopback66070091",
-            "type": "iana-if-type:softwareLoopback",
-            "enabled": True,
-            "ietf-ip:ipv4": {
-                "address": [{"ip": "172.0.91.1", "netmask": "255.255.255.0"}]
-            },
-        }
-    }
-
+    # First, check if interface already exists
+    api_url_check = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
+    
     try:
+        # Check if interface exists
+        check_resp = requests.get(
+            api_url_check,
+            auth=basicauth,
+            headers=headers,
+            verify=False,
+        )
+        
+        if check_resp.status_code == 200:
+            print("Interface already exists")
+            return "Error: Interface Loopback66070091 already existed"
+        
+        # If interface doesn't exist (404), proceed to create it
+        api_url = f"https://{host_ip}/restconf/data/ietf-interfaces:interfaces/interface=Loopback66070091"
+        yangConfig = {
+            "ietf-interfaces:interface": {
+                "name": "Loopback66070091",
+                "type": "iana-if-type:softwareLoopback",
+                "enabled": True,
+                "ietf-ip:ipv4": {
+                    "address": [{"ip": "172.0.91.1", "netmask": "255.255.255.0"}]
+                },
+            }
+        }
+
         resp = requests.put(
             api_url,
             data=json.dumps(yangConfig),
